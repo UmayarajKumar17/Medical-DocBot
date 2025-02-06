@@ -7,7 +7,7 @@ from pdf2image import convert_from_path  # Convert PDF pages to images
 import streamlit as st
 
 # Configure Gemini API (Replace with your API Key)
-genai.configure(api_key="")
+genai.configure(api_key="AIzaSyB9YV9z1hKhiYlqnUerhpuXMG1dZahGEYI")
 
 def extract_pdf_text(pdf_path):
     """Extract text from a PDF."""
@@ -79,13 +79,14 @@ if uploaded_file is not None:
         pdf_text = extract_pdf_text(pdf_path)
         pdf_images = extract_pdf_images(pdf_path)
 
+        # Analyze images from the PDF (VLM)
         image_analysis = analyze_images_with_vlm(pdf_images)
 
-        # Display extracted text
+        # Display extracted text from the PDF
         st.subheader("Extracted Text from PDF")
         st.text(pdf_text)
 
-        # Display image analysis
+        # Display image analysis from the PDF
         st.subheader("Image Analysis (VLM)")
         st.text(image_analysis)
 
@@ -118,8 +119,15 @@ if uploaded_file is not None:
             mime=uploaded_file.type
         )
 
+    # User can ask questions about the uploaded file (PDF or Image)
     user_question = st.text_input("Ask a question about the PDF or Image:")
+
     if user_question:
-        text_answer = ask_gemini_llm(pdf_text, user_question) if uploaded_file.type == "application/pdf" else "No PDF loaded for text-based questions"
-        st.subheader("Text-Based Answer:")
+        if uploaded_file.type == "application/pdf":
+            text_answer = ask_gemini_llm(pdf_text, user_question)  # Ask Gemini LLM for PDF questions
+        elif uploaded_file.type in ["image/jpeg", "image/png", "image/jpg"]:
+            text_answer = image_analysis  # Answer based on image analysis
+
+        # Display the text-based answer to the user
+        st.subheader("Answer to your Question:")
         st.text(text_answer)
